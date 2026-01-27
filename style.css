@@ -440,6 +440,7 @@ input[type=number] {
   bottom: 0.5rem;
   right: 0.5rem;
   display: flex;
+  width: 7.5rem;
   align-items: center;
   gap: 0.5rem;
   background: hsl(0, 0%, 7%);

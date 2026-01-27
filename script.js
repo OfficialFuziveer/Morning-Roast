@@ -209,40 +209,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("copy-btn")?.addEventListener("click", function () {
     if (isCopying) return;
+
     const val = document.getElementById("new-sens-value")?.innerText;
+    const btnText = this.querySelector("span");
+    const originalText = btnText ? btnText.innerText : "COPY";
 
     if (!val || val === "0.000") {
-      isCopying = true;
-
+      this.classList.remove("vibrate");
+      void this.offsetWidth;
       this.classList.add("vibrate");
 
-      if ("vibrate" in navigator) {
-        navigator.vibrate([50, 30, 50]);
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate([50, 30, 50]);
       }
 
       setTimeout(() => {
         this.classList.remove("vibrate");
-        isCopying = false;
       }, 300);
       return;
     }
 
     isCopying = true;
-    successSound.currentTime = 0;
-    successSound.play();
 
-    if ("vibrate" in navigator) {
-      navigator.vibrate(20);
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(20);
     }
 
     navigator.clipboard.writeText(val).then(() => {
-      const originalContent = this.innerHTML;
       this.classList.add("copied");
-      this.querySelector("span").innerText = "COPIED!";
+      if (btnText) btnText.innerText = "COPIED!";
 
       setTimeout(() => {
         this.classList.remove("copied");
-        this.innerHTML = originalContent;
+        if (btnText) btnText.innerText = originalText;
         isCopying = false;
       }, 1500);
     });
