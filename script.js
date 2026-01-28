@@ -5,7 +5,33 @@ const gameData = {
   Rust: 0.622222,
 };
 
+const proDatabase = {
+  Valorant: {
+    low: ["Alfajer", "Demon1", "Less", "pANcada"],
+    average: ["Aspas", "Derke", "TenZ", "Zekken"],
+    high: ["f0rsakeN", "something", "Asuna", "Hiko"],
+  },
+  CS2: {
+    low: ["Ropz", "NiKo", "ZywOo", "Jame"],
+    average: ["m0NESY", "dev1ce", "s1mple", "Twistzz"],
+    high: ["ELiGE", "Woxic", "Forest", "Xantares"],
+  },
+  General: {
+    low: ["Pro Low"],
+    average: ["Pro Average"],
+    high: ["Pro High"],
+  },
+};
+
 let isCopying = false;
+
+function getAdvice(edpi) {
+  if (edpi < 200) return "Extremely low. Excellent for pixel-perfect long-range shots, but requires massive arm movement.";
+  if (edpi >= 200 && edpi < 400) return "Precision range. The 'sweet spot' for tactical shooters like Valorant and CS2.";
+  if (edpi >= 400 && edpi <= 800) return "Balanced. A great middle-ground for entry fragging and quick 180s.";
+  if (edpi > 800 && edpi <= 1200) return "High speed. Fast reactive flicking, but requires very high fine-motor mouse control.";
+  return "Very high. Can lead to jittery aim. Most pros stay below this range for better consistency.";
+}
 
 function switchTab(evt, id) {
   const sections = document.querySelectorAll(".section");
@@ -17,6 +43,18 @@ function switchTab(evt, id) {
   evt.currentTarget.classList.add("active");
 }
 
+function toggleResetButton() {
+  const resetBtn = document.getElementById("reset-btn");
+  if (!resetBtn) return;
+  const fG = document.getElementById("from-search").value;
+  const tG = document.getElementById("to-search").value;
+  const bS = document.getElementById("base-sens").value;
+  const fD = document.getElementById("from-dpi").value;
+  const tD = document.getElementById("to-dpi").value;
+  const isDefault = fG === "" && tG === "" && bS === "" && fD === "" && tD === "";
+  resetBtn.classList.toggle("is-default", isDefault);
+}
+
 function updateConversion() {
   const getVal = (id) => document.getElementById(id)?.value || "";
   const fromGame = getVal("from-search");
@@ -26,13 +64,18 @@ function updateConversion() {
   const tDpi = parseFloat(getVal("to-dpi"));
   const display = document.getElementById("new-sens-value");
 
-  if (!display) return;
+  ["from", "to"].forEach((id) => {
+    const btn = document.getElementById(`${id}-clear`);
+    const input = document.getElementById(`${id}-search`);
+    if (btn && input) btn.style.display = input.value ? "flex" : "none";
+  });
 
+  toggleResetButton();
+  if (!display) return;
   const sens = parseFloat(baseSens.replace(",", "."));
   const isValid = fromGame && toGame && baseSens !== "" && !isNaN(fDpi) && !isNaN(tDpi);
-
   if (!isValid || fDpi === 0 || tDpi === 0 || isNaN(sens)) {
-    display.innerText = "0.000";
+    display.innerText = "0.00";
     return;
   }
 
@@ -45,15 +88,109 @@ function updateConversion() {
   }
 }
 
-function handleInputValidation(input) {
-  const isDpi = input.id.includes("dpi");
-  const regex = isDpi ? /^[0-9]*$/ : /^[0-9.,]*$/;
-  const cleanRegex = isDpi ? /[^0-9]/g : /[^0-9.,]/g;
+function updateEDPI() {
+  const dpiVal = document.getElementById("edpi-dpi").value;
+  const sensVal = document.getElementById("edpi-sens").value;
+  const gameVal = document.getElementById("edpi-game-search").value;
+  const display = document.getElementById("edpi-value");
+  const pointer = document.getElementById("spectrum-pointer");
+  const rankLabel = document.getElementById("edpi-rank");
+  const proDisplay = document.getElementById("pro-comparison");
+  const proName = document.getElementById("pro-name");
+  const suggestBox = document.getElementById("sens-suggestion");
+  const suggestText = document.getElementById("suggestion-text");
+  const adviceDot = document.getElementById("advice-dot");
 
-  input.addEventListener("beforeinput", (e) => {
-    if (e.data && !regex.test(e.data)) e.preventDefault();
-  });
+  const defaultBlue = "hsl(198, 93%, 60%)";
 
+  const clearBtn = document.getElementById("edpi-game-clear");
+  if (clearBtn) clearBtn.style.display = gameVal ? "flex" : "none";
+
+  if (gameVal === "" || dpiVal === "" || sensVal === "" || parseFloat(dpiVal) === 0) {
+    if (display) display.innerText = "0";
+    if (rankLabel) rankLabel.style.opacity = "0";
+    if (proDisplay) proDisplay.style.opacity = "0";
+    if (suggestBox) suggestBox.style.display = "none";
+    if (pointer) {
+      pointer.style.left = "0%";
+      pointer.style.backgroundColor = defaultBlue;
+      pointer.style.boxShadow = `0 0 1rem ${defaultBlue}`;
+    }
+    return;
+  }
+
+  const edpi = Math.round(parseFloat(dpiVal) * parseFloat(sensVal.replace(",", ".")));
+  if (display) display.innerText = edpi;
+
+  let percent, color, label, tier;
+
+  // Game-specific range logic
+  if (gameVal === "Valorant") {
+    if (edpi < 200) {
+      label = "PRO LOW";
+      color = "hsl(198, 93%, 60%)";
+      tier = "low";
+      percent = Math.min((edpi / 200) * 33, 33);
+    } else if (edpi <= 400) {
+      label = "PRO AVERAGE";
+      color = "hsl(var(--vibrant-red))";
+      tier = "average";
+      percent = 33 + ((edpi - 200) / 200) * 33;
+    } else {
+      label = "PRO HIGH";
+      color = "hsl(43, 96%, 56%)";
+      tier = "high";
+      percent = Math.min(66 + ((edpi - 400) / 600) * 34, 100);
+    }
+  } else if (gameVal === "CS2") {
+    if (edpi < 600) {
+      label = "PRO LOW";
+      color = "hsl(198, 93%, 60%)";
+      tier = "low";
+      percent = Math.min((edpi / 600) * 33, 33);
+    } else if (edpi <= 1000) {
+      label = "PRO AVERAGE";
+      color = "hsl(var(--vibrant-red))";
+      tier = "average";
+      percent = 33 + ((edpi - 600) / 400) * 33;
+    } else {
+      label = "PRO HIGH";
+      color = "hsl(43, 96%, 56%)";
+      tier = "high";
+      percent = Math.min(66 + ((edpi - 1000) / 1000) * 34, 100);
+    }
+  }
+
+  if (pointer) {
+    pointer.style.left = `${percent}%`;
+    pointer.style.backgroundColor = color;
+    pointer.style.boxShadow = `0 0 1rem ${color}`;
+  }
+
+  if (rankLabel) {
+    rankLabel.innerText = label;
+    rankLabel.style.color = color;
+    rankLabel.style.opacity = "1";
+  }
+
+  if (proDisplay && proName) {
+    const gamePool = proDatabase[gameVal] || proDatabase.General;
+    const pros = gamePool[tier];
+    proName.innerText = pros[Math.floor(Math.random() * pros.length)];
+    proName.style.color = color;
+    proDisplay.style.opacity = "1";
+  }
+
+  if (suggestBox && suggestText) {
+    suggestText.innerText = getAdvice(edpi);
+    suggestBox.style.display = "block";
+    if (adviceDot) adviceDot.style.backgroundColor = color;
+  }
+}
+
+function handleInputValidation(input, callback) {
+  const isDpiField = input.id.includes("-dpi");
+  const cleanRegex = isDpiField ? /[^0-9]/g : /[^0-9.,]/g;
   input.addEventListener("input", () => {
     const start = input.selectionStart;
     if (cleanRegex.test(input.value)) {
@@ -61,18 +198,36 @@ function handleInputValidation(input) {
       input.setSelectionRange(start - 1, start - 1);
     }
     if (input.value.length > 10) input.value = input.value.substring(0, 10);
-    updateConversion();
+    callback();
   });
-
   input.addEventListener("focus", function () {
     setTimeout(() => this.select(), 0);
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const numericInputs = ["base-sens", "from-dpi", "to-dpi"];
+  ["base-sens", "from-dpi", "to-dpi"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) handleInputValidation(el, updateConversion);
+  });
 
-  ["from", "to"].forEach((idPrefix) => {
+  const edpiDpi = document.getElementById("edpi-dpi");
+  const edpiSens = document.getElementById("edpi-sens");
+
+  if (edpiDpi) handleInputValidation(edpiDpi, updateEDPI);
+  if (edpiSens) handleInputValidation(edpiSens, updateEDPI);
+
+  document.addEventListener("click", (e) => {
+    ["from", "to", "edpi-game"].forEach((idPrefix) => {
+      const list = document.getElementById(`${idPrefix}-list`);
+      const input = document.getElementById(`${idPrefix}-search`);
+      if (list && input && !input.contains(e.target) && !list.contains(e.target)) {
+        list.classList.add("hidden");
+      }
+    });
+  });
+
+  ["from", "to", "edpi-game"].forEach((idPrefix) => {
     const list = document.getElementById(`${idPrefix}-list`);
     const input = document.getElementById(`${idPrefix}-search`);
     const clearBtn = document.getElementById(`${idPrefix}-clear`);
@@ -80,13 +235,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let activeIndex = -1;
     const getVisible = () => Array.from(list.querySelectorAll(".game-option")).filter((o) => o.style.display !== "none");
-
-    const syncUI = (visible, scroll = true) => {
+    const syncUI = (visible) => {
       visible.forEach((opt, i) => opt.classList.toggle("hover", i === activeIndex));
-      if (scroll && activeIndex >= 0 && visible[activeIndex]) {
+      if (activeIndex >= 0 && visible[activeIndex]) {
         visible[activeIndex].scrollIntoView({ block: "nearest" });
       }
-      if (clearBtn) clearBtn.style.display = input.value ? "flex" : "none";
     };
 
     input.addEventListener("focus", () => {
@@ -99,13 +252,13 @@ document.addEventListener("DOMContentLoaded", () => {
       list.classList.remove("hidden");
       activeIndex = 0;
       syncUI(getVisible());
-      updateConversion();
+      if (idPrefix === "edpi-game") updateEDPI();
+      else updateConversion();
     });
 
     input.addEventListener("keydown", (e) => {
       const visible = getVisible();
       if (!visible.length) return;
-
       if (e.key === "ArrowDown") {
         activeIndex = (activeIndex + 1) % visible.length;
         syncUI(visible);
@@ -129,129 +282,83 @@ document.addEventListener("DOMContentLoaded", () => {
       list.classList.remove("hidden");
       activeIndex = 0;
       syncUI(getVisible());
-      updateConversion();
+      if (idPrefix === "edpi-game") updateEDPI();
+      else updateConversion();
     });
 
     if (clearBtn) {
       clearBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
         input.value = "";
-        clearBtn.style.display = "none";
-        const options = list.querySelectorAll(".game-option");
-        options.forEach((o) => (o.style.display = "flex"));
-        activeIndex = 0;
-        syncUI(getVisible());
-        updateConversion();
-        input.focus();
+        list.classList.add("hidden");
+        if (idPrefix === "edpi-game") updateEDPI();
+        else updateConversion();
       });
     }
 
     list.querySelectorAll(".game-option").forEach((opt) => {
-      opt.addEventListener("mousemove", () => {
-        const visible = getVisible();
-        const newIndex = visible.indexOf(opt);
-        if (activeIndex !== newIndex) {
-          activeIndex = newIndex;
-          syncUI(visible, false);
-        }
-      });
-
       opt.addEventListener("mousedown", (e) => {
         e.preventDefault();
         input.value = opt.querySelector(".game-name").textContent;
         list.classList.add("hidden");
-        if (clearBtn) clearBtn.style.display = "flex";
-        updateConversion();
+        if (idPrefix === "edpi-game") updateEDPI();
+        else updateConversion();
         input.blur();
       });
     });
   });
 
-  numericInputs.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) handleInputValidation(el);
-  });
-
-  const navMap = { "base-sens": "from-dpi", "from-dpi": "to-dpi" };
-  Object.keys(navMap).forEach((id) => {
-    document.getElementById(id)?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        document.getElementById(navMap[id])?.focus();
-      }
-    });
-  });
-
-  document.getElementById("to-dpi")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") e.target.blur();
-  });
-
   document.getElementById("swap-btn")?.addEventListener("click", () => {
-    const fG = document.getElementById("from-search"),
-      tG = document.getElementById("to-search");
-    const fD = document.getElementById("from-dpi"),
-      tD = document.getElementById("to-dpi");
-    const bS = document.getElementById("base-sens"),
-      res = document.getElementById("new-sens-value");
-
-    if (fG && tG && fD && tD && bS && res) {
-      if (res.innerText !== "0.000") bS.value = res.innerText;
-      [fG.value, tG.value] = [tG.value, fG.value];
-      [fD.value, tD.value] = [tD.value, fD.value];
+    const el = { fG: document.getElementById("from-search"), tG: document.getElementById("to-search"), fD: document.getElementById("from-dpi"), tD: document.getElementById("to-dpi"), bS: document.getElementById("base-sens"), res: document.getElementById("new-sens-value") };
+    if (Object.values(el).every((x) => x)) {
+      if (el.res.innerText !== "0.00") el.bS.value = el.res.innerText;
+      [el.fG.value, el.tG.value] = [el.tG.value, el.fG.value];
+      [el.fD.value, el.tD.value] = [el.tD.value, el.fD.value];
       updateConversion();
-
-      const fClear = document.getElementById("from-clear");
-      const tClear = document.getElementById("to-clear");
-      if (fClear) fClear.style.display = fG.value ? "flex" : "none";
-      if (tClear) tClear.style.display = tG.value ? "flex" : "none";
     }
   });
 
-  document.getElementById("copy-btn")?.addEventListener("click", function () {
-    if (isCopying) return;
-
-    const val = document.getElementById("new-sens-value")?.innerText;
-    const btnText = this.querySelector("span");
-    const originalText = btnText ? btnText.innerText : "COPY";
-
-    if (!val || val === "0.000") {
-      this.classList.remove("vibrate");
-      void this.offsetWidth;
-      this.classList.add("vibrate");
-
-      if (window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate([50, 30, 50]);
-      }
-
-      setTimeout(() => {
-        this.classList.remove("vibrate");
-      }, 300);
-      return;
-    }
-
-    isCopying = true;
-
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(20);
-    }
-
-    navigator.clipboard.writeText(val).then(() => {
-      this.classList.add("copied");
-      if (btnText) btnText.innerText = "COPIED!";
-
-      setTimeout(() => {
-        this.classList.remove("copied");
-        if (btnText) btnText.innerText = originalText;
-        isCopying = false;
-      }, 1500);
+  document.getElementById("reset-btn")?.addEventListener("click", () => {
+    ["from-search", "to-search", "base-sens", "from-dpi", "to-dpi"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
     });
+    updateConversion();
   });
 
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".custom-dropdown")) {
-      document.querySelectorAll(".dropdown-list").forEach((l) => l.classList.add("hidden"));
-    }
+  document.getElementById("edpi-reset")?.addEventListener("click", () => {
+    if (edpiDpi) edpiDpi.value = "";
+    if (edpiSens) edpiSens.value = "";
+    const eG = document.getElementById("edpi-game-search");
+    if (eG) eG.value = "";
+    updateEDPI();
+  });
+
+  document.querySelectorAll(".copy-button").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      if (isCopying) return;
+      const isEdpi = this.id === "edpi-copy";
+      const val = document.getElementById(isEdpi ? "edpi-value" : "new-sens-value")?.innerText;
+      if (!val || val === "0.00" || val === "0") {
+        this.classList.add("vibrate");
+        setTimeout(() => this.classList.remove("vibrate"), 300);
+        return;
+      }
+      isCopying = true;
+      const span = this.querySelector("span");
+      const originalText = span ? span.innerText : "";
+      navigator.clipboard.writeText(val).then(() => {
+        this.classList.add("copied");
+        if (span) span.innerText = "COPIED!";
+        setTimeout(() => {
+          this.classList.remove("copied");
+          if (span) span.innerText = originalText;
+          isCopying = false;
+        }, 1500);
+      });
+    });
   });
 
   updateConversion();
+  updateEDPI();
 });
