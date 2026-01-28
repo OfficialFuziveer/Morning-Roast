@@ -25,22 +25,18 @@ const proDatabase = {
 
 let isCopying = false;
 
-function applyPreset(from, to, sens, fDpi, tDpi) {
-  const fG = document.getElementById("from-search");
-  const tG = document.getElementById("to-search");
-  const bS = document.getElementById("base-sens");
-  const fD = document.getElementById("from-dpi");
-  const tD = document.getElementById("to-dpi");
+function applyEdpiPreset(game, dpi, sens) {
+  const eG = document.getElementById("edpi-game-search");
+  const eD = document.getElementById("edpi-dpi");
+  const eS = document.getElementById("edpi-sens");
+  const eTabBtn = document.querySelector('[onclick*="edpi-calculator-tab"]');
 
-  if (fG && tG && bS && fD && tD) {
-    fG.value = from;
-    tG.value = to;
-    bS.value = sens;
-    fD.value = fDpi;
-    tD.value = tDpi;
-
-    updateConversion();
-    toggleResetButton();
+  if (eG && eD && eS) {
+    if (eTabBtn) eTabBtn.click();
+    eG.value = game;
+    eD.value = dpi;
+    eS.value = sens;
+    updateEDPI();
   }
 }
 
@@ -53,16 +49,17 @@ function checkActivePresets() {
 
   document.querySelectorAll(".preset-btn").forEach((btn) => {
     const attr = btn.getAttribute("onclick") || "";
-    const matches = attr.match(/'([^']+)',\s*'([^']+)',\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+    const matches = attr.match(/'([^']+)',\s*([\d.]+),\s*([\d.]+)/);
 
     if (matches) {
-      const pFrom = matches[1];
-      const pTo = matches[2];
+      const pGame = matches[1];
+      const pDpi = parseFloat(matches[2]);
       const pSens = parseFloat(matches[3]);
-      const pFDpi = parseFloat(matches[4]);
-      const pTDpi = parseFloat(matches[5]);
+      const eG = document.getElementById("edpi-game-search")?.value || "";
+      const eD = parseFloat(document.getElementById("edpi-dpi")?.value || "0");
+      const eS = parseFloat(document.getElementById("edpi-sens")?.value.replace(",", ".") || "0");
 
-      const isMatch = fG === pFrom && tG === pTo && bS === pSens && fD === pFDpi && tD === pTDpi;
+      const isMatch = eG === pGame && eD === pDpi && eS === pSens;
       btn.classList.toggle("active-preset", isMatch);
     }
   });
@@ -90,11 +87,13 @@ function switchTab(evt, id) {
   if (target) target.style.display = "flex";
   evt.currentTarget.classList.add("active");
 
+  const suggestBox = document.getElementById("sens-suggestion");
+
   if (id === "sensitivity-converter-tab") {
-    const suggestBox = document.getElementById("sens-suggestion");
     if (suggestBox) suggestBox.style.display = "none";
     updateConversion();
   } else if (id === "edpi-calculator-tab") {
+    if (suggestBox) suggestBox.style.display = "none";
     updateEDPI();
   }
 }
@@ -142,7 +141,6 @@ function updateConversion() {
   const isValid = fromGame && toGame && baseSens !== "" && !isNaN(fDpi) && !isNaN(tDpi);
   if (!isValid || fDpi === 0 || tDpi === 0 || isNaN(sens)) {
     display.innerText = "0.00";
-    checkActivePresets();
     return;
   }
   const fromFactor = gameData[fromGame];
@@ -151,7 +149,6 @@ function updateConversion() {
     const convertedSens = sens * (toFactor / fromFactor) * (fDpi / tDpi);
     display.innerText = convertedSens.toFixed(3);
   }
-  checkActivePresets();
 }
 
 function updateEDPI() {
@@ -186,6 +183,7 @@ function updateEDPI() {
       pointer.style.backgroundColor = defaultBlue;
       pointer.style.boxShadow = "none";
     }
+    checkActivePresets();
     return;
   }
 
@@ -252,6 +250,7 @@ function updateEDPI() {
     suggestBox.style.display = "block";
     if (adviceDot) adviceDot.style.backgroundColor = color;
   }
+  checkActivePresets();
 }
 
 function handleInputValidation(input, callback) {
@@ -265,10 +264,7 @@ function handleInputValidation(input, callback) {
     if (isDpiField) {
       val = val.replace(/[^0-9]/g, "");
     } else if (isSensField) {
-      // 1. Remove anything that isn't a digit, dot, or comma
       val = val.replace(/[^0-9.,]/g, "");
-
-      // 2. Ensure only one dot or comma exists
       const firstSeparatorIndex = val.search(/[.,]/);
       if (firstSeparatorIndex !== -1) {
         const prefix = val.substring(0, firstSeparatorIndex + 1);
@@ -278,13 +274,11 @@ function handleInputValidation(input, callback) {
     }
 
     if (val.length > 10) val = val.substring(0, 10);
-
     if (input.value !== val) {
       input.value = val;
       const offset = input.value.length < val.length ? -1 : 0;
       input.setSelectionRange(start + offset, start + offset);
     }
-
     callback();
   });
   input.addEventListener("focus", function () {
