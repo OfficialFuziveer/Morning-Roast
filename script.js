@@ -7,14 +7,14 @@ const gameData = {
 
 const proDatabase = {
   Valorant: {
-    low: ["Alfajer", "Demon1", "Less", "pANcada"],
-    average: ["Aspas", "Derke", "TenZ", "Zekken"],
-    high: ["f0rsakeN", "something", "Asuna", "Hiko"],
+    low: ["Alfajer", "Demon1", "Less", "pANcada", "Chronicle", "Leo", "yay", "Nats"],
+    average: ["Aspas", "Derke", "TenZ", "Zekken", "Cryocells", "Sayf", "Leaf", "cNed"],
+    high: ["f0rsakeN", "something", "Asuna", "Hiko", "Primmie", "Jinggg", "Patiphan", "Governor"],
   },
   CS2: {
-    low: ["Ropz", "NiKo", "ZywOo", "Jame"],
-    average: ["m0NESY", "dev1ce", "s1mple", "Twistzz"],
-    high: ["ELiGE", "Woxic", "Forest", "Xantares"],
+    low: ["Ropz", "NiKo", "ZywOo", "Jame", "Hunter-", "Rain", "B1t", "Kyojin"],
+    average: ["m0NESY", "dev1ce", "s1mple", "Twistzz", "Broky", "Ax1Le", "Shox", "Get_RiGHT"],
+    high: ["ELiGE", "Woxic", "Forest", "Xantares", "Stewie2K", "Jackz", "TabseN", "Smooya"],
   },
   General: {
     low: ["Pro Low"],
@@ -25,12 +25,59 @@ const proDatabase = {
 
 let isCopying = false;
 
-function getAdvice(edpi) {
-  if (edpi < 200) return "Extremely low. Excellent for pixel-perfect long-range shots, but requires massive arm movement.";
-  if (edpi >= 200 && edpi < 400) return "Precision range. The 'sweet spot' for tactical shooters like Valorant and CS2.";
-  if (edpi >= 400 && edpi <= 800) return "Balanced. A great middle-ground for entry fragging and quick 180s.";
-  if (edpi > 800 && edpi <= 1200) return "High speed. Fast reactive flicking, but requires very high fine-motor mouse control.";
-  return "Very high. Can lead to jittery aim. Most pros stay below this range for better consistency.";
+function applyPreset(from, to, sens, fDpi, tDpi) {
+  const fG = document.getElementById("from-search");
+  const tG = document.getElementById("to-search");
+  const bS = document.getElementById("base-sens");
+  const fD = document.getElementById("from-dpi");
+  const tD = document.getElementById("to-dpi");
+
+  if (fG && tG && bS && fD && tD) {
+    fG.value = from;
+    tG.value = to;
+    bS.value = sens;
+    fD.value = fDpi;
+    tD.value = tDpi;
+
+    updateConversion();
+    toggleResetButton();
+  }
+}
+
+function checkActivePresets() {
+  const fG = document.getElementById("from-search")?.value || "";
+  const tG = document.getElementById("to-search")?.value || "";
+  const bS = parseFloat(document.getElementById("base-sens")?.value.replace(",", ".") || "0");
+  const fD = parseFloat(document.getElementById("from-dpi")?.value || "0");
+  const tD = parseFloat(document.getElementById("to-dpi")?.value || "0");
+
+  document.querySelectorAll(".preset-btn").forEach((btn) => {
+    const attr = btn.getAttribute("onclick") || "";
+    const matches = attr.match(/'([^']+)',\s*'([^']+)',\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+
+    if (matches) {
+      const pFrom = matches[1];
+      const pTo = matches[2];
+      const pSens = parseFloat(matches[3]);
+      const pFDpi = parseFloat(matches[4]);
+      const pTDpi = parseFloat(matches[5]);
+
+      const isMatch = fG === pFrom && tG === pTo && bS === pSens && fD === pFDpi && tD === pTDpi;
+      btn.classList.toggle("active-preset", isMatch);
+    }
+  });
+}
+
+function getAdvice(edpi, game) {
+  if (game === "CS2") {
+    if (edpi < 600) return "Low for CS2. Great for stability and long-range duels with the AWP or AK.";
+    if (edpi <= 1000) return "The CS2 Sweet Spot. Perfect balance for spray control and entry fragging.";
+    return "High for CS2. Allows for rapid 180s and clearing corners, but requires high precision control.";
+  } else {
+    if (edpi < 200) return "Low for Valorant. Ideal for steady holding and micro-corrections.";
+    if (edpi <= 400) return "Valorant Standard. Most tactical pros sit in this range for maximum consistency.";
+    return "High for Valorant. Great for reactive flicking and movement-based agents like Jett or Neon.";
+  }
 }
 
 function switchTab(evt, id) {
@@ -38,9 +85,18 @@ function switchTab(evt, id) {
   const buttons = document.querySelectorAll(".button-container .button");
   sections.forEach((s) => (s.style.display = "none"));
   buttons.forEach((b) => b.classList.remove("active"));
+
   const target = document.getElementById(id);
   if (target) target.style.display = "flex";
   evt.currentTarget.classList.add("active");
+
+  if (id === "sensitivity-converter-tab") {
+    const suggestBox = document.getElementById("sens-suggestion");
+    if (suggestBox) suggestBox.style.display = "none";
+    updateConversion();
+  } else if (id === "edpi-calculator-tab") {
+    updateEDPI();
+  }
 }
 
 function toggleResetButton() {
@@ -51,7 +107,17 @@ function toggleResetButton() {
   const bS = document.getElementById("base-sens").value;
   const fD = document.getElementById("from-dpi").value;
   const tD = document.getElementById("to-dpi").value;
-  const isDefault = fG === "" && tG === "" && bS === "" && fD === "" && tD === "";
+  const isDefault = fG === "" && tG === "" && bS === "" && fD === "800" && tD === "800";
+  resetBtn.classList.toggle("is-default", isDefault);
+}
+
+function toggleEDPIResetButton() {
+  const resetBtn = document.getElementById("edpi-reset");
+  if (!resetBtn) return;
+  const dpiVal = document.getElementById("edpi-dpi").value;
+  const sensVal = document.getElementById("edpi-sens").value;
+  const gameVal = document.getElementById("edpi-game-search").value;
+  const isDefault = gameVal === "" && sensVal === "" && dpiVal === "";
   resetBtn.classList.toggle("is-default", isDefault);
 }
 
@@ -76,16 +142,16 @@ function updateConversion() {
   const isValid = fromGame && toGame && baseSens !== "" && !isNaN(fDpi) && !isNaN(tDpi);
   if (!isValid || fDpi === 0 || tDpi === 0 || isNaN(sens)) {
     display.innerText = "0.00";
+    checkActivePresets();
     return;
   }
-
   const fromFactor = gameData[fromGame];
   const toFactor = gameData[toGame];
-
   if (fromFactor && toFactor) {
     const convertedSens = sens * (toFactor / fromFactor) * (fDpi / tDpi);
     display.innerText = convertedSens.toFixed(3);
   }
+  checkActivePresets();
 }
 
 function updateEDPI() {
@@ -100,13 +166,17 @@ function updateEDPI() {
   const suggestBox = document.getElementById("sens-suggestion");
   const suggestText = document.getElementById("suggestion-text");
   const adviceDot = document.getElementById("advice-dot");
-
   const defaultBlue = "hsl(198, 93%, 60%)";
+
+  toggleEDPIResetButton();
 
   const clearBtn = document.getElementById("edpi-game-clear");
   if (clearBtn) clearBtn.style.display = gameVal ? "flex" : "none";
 
-  if (gameVal === "" || dpiVal === "" || sensVal === "" || parseFloat(dpiVal) === 0) {
+  const rawEdpi = parseFloat(dpiVal) * parseFloat(sensVal.replace(",", "."));
+  const edpi = Math.round(rawEdpi);
+
+  if (gameVal === "" || isNaN(edpi) || edpi === 0) {
     if (display) display.innerText = "0";
     if (rankLabel) rankLabel.style.opacity = "0";
     if (proDisplay) proDisplay.style.opacity = "0";
@@ -114,35 +184,17 @@ function updateEDPI() {
     if (pointer) {
       pointer.style.left = "0%";
       pointer.style.backgroundColor = defaultBlue;
-      pointer.style.boxShadow = `0 0 1rem ${defaultBlue}`;
+      pointer.style.boxShadow = "none";
     }
     return;
   }
 
-  const edpi = Math.round(parseFloat(dpiVal) * parseFloat(sensVal.replace(",", ".")));
   if (display) display.innerText = edpi;
 
   let percent, color, label, tier;
+  const isCS = gameVal === "CS2" || gameVal === "Counter-Strike 2";
 
-  // Game-specific range logic
-  if (gameVal === "Valorant") {
-    if (edpi < 200) {
-      label = "PRO LOW";
-      color = "hsl(198, 93%, 60%)";
-      tier = "low";
-      percent = Math.min((edpi / 200) * 33, 33);
-    } else if (edpi <= 400) {
-      label = "PRO AVERAGE";
-      color = "hsl(var(--vibrant-red))";
-      tier = "average";
-      percent = 33 + ((edpi - 200) / 200) * 33;
-    } else {
-      label = "PRO HIGH";
-      color = "hsl(43, 96%, 56%)";
-      tier = "high";
-      percent = Math.min(66 + ((edpi - 400) / 600) * 34, 100);
-    }
-  } else if (gameVal === "CS2") {
+  if (isCS) {
     if (edpi < 600) {
       label = "PRO LOW";
       color = "hsl(198, 93%, 60%)";
@@ -159,6 +211,23 @@ function updateEDPI() {
       tier = "high";
       percent = Math.min(66 + ((edpi - 1000) / 1000) * 34, 100);
     }
+  } else {
+    if (edpi < 200) {
+      label = "PRO LOW";
+      color = "hsl(198, 93%, 60%)";
+      tier = "low";
+      percent = Math.min((edpi / 200) * 33, 33);
+    } else if (edpi <= 400) {
+      label = "PRO AVERAGE";
+      color = "hsl(var(--vibrant-red))";
+      tier = "average";
+      percent = 33 + ((edpi - 200) / 200) * 33;
+    } else {
+      label = "PRO HIGH";
+      color = "hsl(43, 96%, 56%)";
+      tier = "high";
+      percent = Math.min(66 + ((edpi - 400) / 600) * 34, 100);
+    }
   }
 
   if (pointer) {
@@ -166,23 +235,20 @@ function updateEDPI() {
     pointer.style.backgroundColor = color;
     pointer.style.boxShadow = `0 0 1rem ${color}`;
   }
-
   if (rankLabel) {
     rankLabel.innerText = label;
     rankLabel.style.color = color;
     rankLabel.style.opacity = "1";
   }
-
   if (proDisplay && proName) {
-    const gamePool = proDatabase[gameVal] || proDatabase.General;
+    const gamePool = proDatabase[isCS ? "CS2" : "Valorant"] || proDatabase.General;
     const pros = gamePool[tier];
     proName.innerText = pros[Math.floor(Math.random() * pros.length)];
     proName.style.color = color;
     proDisplay.style.opacity = "1";
   }
-
   if (suggestBox && suggestText) {
-    suggestText.innerText = getAdvice(edpi);
+    suggestText.innerText = getAdvice(edpi, isCS ? "CS2" : "Valorant");
     suggestBox.style.display = "block";
     if (adviceDot) adviceDot.style.backgroundColor = color;
   }
@@ -190,14 +256,35 @@ function updateEDPI() {
 
 function handleInputValidation(input, callback) {
   const isDpiField = input.id.includes("-dpi");
-  const cleanRegex = isDpiField ? /[^0-9]/g : /[^0-9.,]/g;
+  const isSensField = input.id === "base-sens" || input.id === "edpi-sens";
+
   input.addEventListener("input", () => {
+    let val = input.value;
     const start = input.selectionStart;
-    if (cleanRegex.test(input.value)) {
-      input.value = input.value.replace(cleanRegex, "");
-      input.setSelectionRange(start - 1, start - 1);
+
+    if (isDpiField) {
+      val = val.replace(/[^0-9]/g, "");
+    } else if (isSensField) {
+      // 1. Remove anything that isn't a digit, dot, or comma
+      val = val.replace(/[^0-9.,]/g, "");
+
+      // 2. Ensure only one dot or comma exists
+      const firstSeparatorIndex = val.search(/[.,]/);
+      if (firstSeparatorIndex !== -1) {
+        const prefix = val.substring(0, firstSeparatorIndex + 1);
+        const rest = val.substring(firstSeparatorIndex + 1).replace(/[.,]/g, "");
+        val = prefix + rest;
+      }
     }
-    if (input.value.length > 10) input.value = input.value.substring(0, 10);
+
+    if (val.length > 10) val = val.substring(0, 10);
+
+    if (input.value !== val) {
+      input.value = val;
+      const offset = input.value.length < val.length ? -1 : 0;
+      input.setSelectionRange(start + offset, start + offset);
+    }
+
     callback();
   });
   input.addEventListener("focus", function () {
@@ -206,16 +293,18 @@ function handleInputValidation(input, callback) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  ["base-sens", "from-dpi", "to-dpi"].forEach((id) => {
+  const fD = document.getElementById("from-dpi");
+  const tD = document.getElementById("to-dpi");
+  if (fD) fD.value = "800";
+  if (tD) tD.value = "800";
+
+  ["base-sens", "from-dpi", "to-dpi", "edpi-dpi", "edpi-sens"].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) handleInputValidation(el, updateConversion);
+    if (el) {
+      const callback = id.startsWith("edpi-") ? updateEDPI : updateConversion;
+      handleInputValidation(el, callback);
+    }
   });
-
-  const edpiDpi = document.getElementById("edpi-dpi");
-  const edpiSens = document.getElementById("edpi-sens");
-
-  if (edpiDpi) handleInputValidation(edpiDpi, updateEDPI);
-  if (edpiSens) handleInputValidation(edpiSens, updateEDPI);
 
   document.addEventListener("click", (e) => {
     ["from", "to", "edpi-game"].forEach((idPrefix) => {
@@ -319,18 +408,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("reset-btn")?.addEventListener("click", () => {
-    ["from-search", "to-search", "base-sens", "from-dpi", "to-dpi"].forEach((id) => {
+    ["from-search", "to-search", "base-sens"].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = "";
     });
+    const fD = document.getElementById("from-dpi");
+    const tD = document.getElementById("to-dpi");
+    if (fD) fD.value = "800";
+    if (tD) tD.value = "800";
     updateConversion();
   });
 
   document.getElementById("edpi-reset")?.addEventListener("click", () => {
-    if (edpiDpi) edpiDpi.value = "";
-    if (edpiSens) edpiSens.value = "";
     const eG = document.getElementById("edpi-game-search");
+    const eD = document.getElementById("edpi-dpi");
+    const eS = document.getElementById("edpi-sens");
     if (eG) eG.value = "";
+    if (eD) eD.value = "";
+    if (eS) eS.value = "";
     updateEDPI();
   });
 
