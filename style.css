@@ -2,9 +2,9 @@ body,
 html {
   margin: 0;
   padding: 0;
-  background-color: #fff5f7;
+  background-color: hsl(348, 100%, 98%);
   font-family: "Georgia", serif;
-  color: #4a3b3b;
+  color: hsl(0, 11%, 26%);
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
@@ -28,7 +28,7 @@ html {
 
 .overlay {
   height: 100%;
-  background: rgba(0, 0, 0, 0.15);
+  background: hsla(0, 0%, 0%, 0.15);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -40,7 +40,7 @@ h1 {
   letter-spacing: 10px;
   font-weight: 300;
   text-transform: uppercase;
-  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 4px 10px hsla(0, 0%, 0%, 0.2);
 }
 
 .scroll-indicator {
@@ -72,17 +72,17 @@ h1 {
 }
 
 #typewriter-box {
-  background: rgba(255, 255, 255, 0.4);
+  background: hsla(0, 0%, 100%, 0.4);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid hsla(0, 0%, 100%, 0.6);
   border-radius: 120px 20px 120px 20px;
   padding: 60px 40px;
   width: 90%;
   max-width: 650px;
   text-align: center;
   position: relative;
-  box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
+  box-shadow: 0 10px 30px hsla(351, 100%, 86%, 0.3);
 }
 
 #typewriter {
@@ -92,7 +92,7 @@ h1 {
 }
 
 .cursor {
-  color: #ff8fa3;
+  color: hsl(349, 100%, 78%);
   font-weight: bold;
   animation: blink 1s infinite;
 }
@@ -168,22 +168,22 @@ h1 {
   align-items: center;
   padding: 25px;
   box-sizing: border-box;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid #ffe4e9;
+  box-shadow: 0 8px 15px hsla(0, 0%, 0%, 0.05);
+  border: 1px solid hsl(349, 100%, 95%);
   transition: background-color 1s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #ffffff;
+  background: hsl(0, 0%, 100%);
   overflow: hidden;
 }
 
 .card-front {
   background: white;
   font-size: 4rem;
-  color: #ff8fa3;
+  color: hsl(349, 100%, 78%);
 }
 
 .card-back {
-  background: #ffeff2;
-  color: #d63384;
+  background: hsl(349, 100%, 97%);
+  color: hsl(330, 67%, 52%);
   font-size: 1.2rem;
   font-style: italic;
   transform: rotateY(180deg);
