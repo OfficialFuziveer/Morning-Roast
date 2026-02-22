@@ -2,52 +2,764 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Happy Valentine's day <3</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Birthday Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet" />
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Fredoka One", cursive;
+        background: #0f0c29;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background: #0f0c29;
+        z-index: 3000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.8s ease;
+      }
+
+      .loading-content {
+        position: relative;
+        z-index: 3100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .heart-svg {
+        width: 120px;
+        height: 120px;
+        filter: drop-shadow(0 0 15px rgba(241, 91, 181, 0.6));
+        animation: heartBeat 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+        margin-bottom: 30px;
+      }
+
+      @keyframes heartBeat {
+        0% {
+          transform: scale(0.95);
+        }
+        5% {
+          transform: scale(1.1);
+        }
+        39% {
+          transform: scale(0.85);
+        }
+        45% {
+          transform: scale(1);
+        }
+        60% {
+          transform: scale(0.95);
+        }
+        100% {
+          transform: scale(0.9);
+        }
+      }
+
+      .wait-msg {
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 25px;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      .flip-clock {
+        display: flex;
+        gap: 15px;
+        perspective: 1000px;
+      }
+
+      .flip-unit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .flip-card {
+        background: #1e1b4b;
+        color: white;
+        width: 70px;
+        height: 90px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 3rem;
+        border-radius: 12px;
+        position: relative;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+
+      .unit-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      #star-container {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.5;
+      }
+
+      .twinkle {
+        animation: twinkle var(--duration) infinite ease-in-out;
+      }
+
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+
+      .moon {
+        position: fixed;
+        top: 40px;
+        right: 40px;
+        width: 80px;
+        height: 80px;
+        background: #fdfae1;
+        border-radius: 50%;
+        box-shadow:
+          0 0 60px 20px rgba(253, 250, 225, 0.3),
+          inset -10px 0 15px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+      }
+
+      .shooting-star {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(-45deg, #fff, rgba(0, 0, 255, 0));
+        filter: drop-shadow(0 0 6px #fff);
+        z-index: 1;
+      }
+
+      #world {
+        display: flex;
+        width: 500vw;
+        height: 100vh;
+        transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        position: relative;
+        z-index: 10;
+      }
+
+      .scene {
+        width: 100vw;
+        height: 100vh;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .card {
+        padding: 30px;
+        border-radius: 40px;
+        border: 8px solid white;
+        max-width: 600px;
+        width: 90%;
+        text-align: center;
+        z-index: 20;
+        box-shadow: 15px 15px 0px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-height: 85vh;
+        overflow-y: auto;
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 2.2rem;
+        text-shadow: 2px 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .card-1 {
+        background: #00f5d4;
+        color: #004b41;
+        --theme: #00f5d4;
+      }
+      .card-2 {
+        background: #fee440;
+        color: #5c4d00;
+        --theme: #fee440;
+      }
+      .card-3 {
+        background: #9b5de5;
+        color: white;
+        --theme: #9b5de5;
+      }
+      .card-final {
+        background: #4cc9f0;
+        color: #003049;
+        --theme: #4cc9f0;
+      }
+      .card-4 {
+        background: #f15bb5;
+        color: white;
+        --theme: #f15bb5;
+      }
+
+      .flower-icon {
+        font-size: 3.5rem;
+        cursor: pointer;
+        display: inline-block;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin: 0 5px;
+      }
+
+      .flower-icon:hover {
+        transform: scale(1.4) rotate(15deg);
+      }
+
+      .big-heart {
+        font-size: 6rem;
+        display: block;
+        margin-top: 20px;
+        animation: beat 1.5s infinite;
+      }
+
+      @keyframes beat {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.3);
+        }
+      }
+
+      .nav-btn {
+        position: fixed;
+        bottom: 100px;
+        padding: 10px 25px;
+        background: white;
+        border-radius: 50px;
+        font-family: "Fredoka One", cursive;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 100;
+        box-shadow: 0 8px 0px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 4px solid white;
+        transition: transform 0.2s;
+      }
+
+      .nav-btn:active {
+        transform: scale(0.9) translateY(4px);
+      }
+      #next-btn {
+        right: 40px;
+        background: #f15bb5;
+        color: white;
+      }
+      #prev-btn {
+        left: 40px;
+        background: #4361ee;
+        color: white;
+        display: none;
+      }
+
+      .pagination {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 15px;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 12px 25px;
+        border-radius: 40px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .dot {
+        width: 14px;
+        height: 14px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.3;
+        cursor: pointer;
+        display: none;
+        transition: 0.4s;
+      }
+      .dot.visible {
+        display: block;
+      }
+      .dot.active {
+        opacity: 1;
+        transform: scale(1.8);
+        background: var(--active-color, white);
+        box-shadow: 0 0 15px var(--active-color, white);
+        pointer-events: none;
+      }
+
+      .memory-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 60px);
+        gap: 10px;
+        margin-top: 15px;
+        justify-content: center;
+      }
+      .memory-card {
+        width: 60px;
+        height: 60px;
+        cursor: pointer;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.4s;
+      }
+      .memory-card.flipped {
+        transform: rotateY(180deg);
+      }
+      .memory-card.matched {
+        pointer-events: none;
+      }
+
+      .memory-card .front,
+      .memory-card .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+      }
+
+      .memory-card .front {
+        transform: rotateY(180deg);
+        background: #fff;
+        font-size: 2rem;
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+        transition: box-shadow 0.5s ease-out;
+        will-change: box-shadow;
+      }
+      .memory-card .back {
+        background: #4361ee;
+        color: white;
+      }
+
+      .memory-card.matched .front {
+        box-shadow: 0 0 20px 2px var(--match-color);
+      }
+
+      #notif-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: center;
+      }
+      .notif {
+        background: white;
+        padding: 12px 25px;
+        margin-top: 10px;
+        border-radius: 30px;
+        border: 4px solid currentColor;
+        animation: fadeInOut 3s forwards;
+      }
+
+      @keyframes fadeInOut {
+        0% {
+          transform: translateY(-20px);
+          opacity: 0;
+        }
+        15% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        85% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-20px);
+          opacity: 0;
+        }
+      }
+
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        z-index: 999;
+        animation: burst var(--d) cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      }
+
+      @keyframes burst {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+          opacity: 0;
+        }
+      }
+    </style>
   </head>
   <body>
-    <section class="parallax-section main-hero">
-      <div class="overlay">
-        <h1>Always You</h1>
-      </div>
-      <div class="scroll-indicator">↓</div>
-    </section>
-
-    <section class="love-note-section">
-      <div id="typewriter-box" class="reveal"><span id="typewriter"></span><span class="cursor">|</span></div>
-    </section>
-
-    <section class="parallax-section middle-floral"></section>
-
-    <section class="interaction-section">
-      <div class="card-intro reveal">
-        <h2>Reasons Why I Love You</h2>
-        <p>(Click a card to reveal a secret)</p>
-      </div>
-
-      <div class="card-grid reveal">
-        <div class="love-card">
-          <div class="card-inner">
-            <div class="card-front">❤</div>
-            <div class="card-back">Your smile lights up even my darkest days.</div>
+    <div id="loading-screen">
+      <div class="loading-content">
+        <svg class="heart-svg" viewBox="0 0 32 32">
+          <path d="M16 28.5L14.1 26.6C7.33 20.44 2.85 16.38 2.85 11.4C2.85 7.36 6.01 4.2 10.05 4.2C12.33 4.2 14.52 5.26 15.96 6.93C17.41 5.26 19.6 4.2 21.88 4.2C25.92 4.2 29.08 7.36 29.08 11.4C29.08 16.38 24.6 20.44 17.83 26.62L16 28.5Z" fill="#f15bb5" />
+        </svg>
+        <div class="wait-msg">Wait for your birthday, my love... ✨</div>
+        <div class="flip-clock">
+          <div class="flip-unit">
+            <div class="flip-card" id="d-val">00</div>
+            <div class="unit-label">Days</div>
           </div>
-        </div>
-        <div class="love-card">
-          <div class="card-inner">
-            <div class="card-front">❤</div>
-            <div class="card-back">The way your kindness touches everyone around you.</div>
+          <div class="flip-unit">
+            <div class="flip-card" id="h-val">00</div>
+            <div class="unit-label">Hrs</div>
           </div>
-        </div>
-        <div class="love-card">
-          <div class="card-inner">
-            <div class="card-front">❤</div>
-            <div class="card-back">You are my safest place and my greatest adventure.</div>
+          <div class="flip-unit">
+            <div class="flip-card" id="m-val">00</div>
+            <div class="unit-label">Min</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="s-val">00</div>
+            <div class="unit-label">Sec</div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <script src="script.js"></script>
+    <div class="moon"></div>
+    <div id="star-container"></div>
+    <div id="notif-container"></div>
+
+    <button id="prev-btn" class="nav-btn" onclick="move(-1)">← Back</button>
+    <button id="next-btn" class="nav-btn" onclick="move(1)">Explore →</button>
+
+    <div class="pagination">
+      <div class="dot visible active" onclick="jumpTo(0)"></div>
+      <div class="dot visible" onclick="jumpTo(1)"></div>
+      <div class="dot visible" onclick="jumpTo(2)"></div>
+      <div class="dot" onclick="jumpTo(3)"></div>
+      <div class="dot" onclick="jumpTo(4)"></div>
+    </div>
+
+    <div id="world">
+      <div class="scene">
+        <div class="card card-1" data-color="#00f5d4">
+          <h2>Happy 18th Birthday!</h2>
+          <p>Welcome to your official adulthood! I can't believe the day is finally here. You've grown into such an incredible person, and I feel so lucky to be by your side. This little world is a celebration of you!</p>
+          <p><strong>Tap Explore to start!</strong></p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="card card-2" data-color="#fee440">
+          <h2>The Compliment Forest</h2>
+          <p>Hover over the flowers for a surprise, then tap!</p>
+          <div id="flower-container">
+            <span class="flower-icon" onclick="notify('You are stunning! ✨', '#ff75a0')">🌸</span>
+            <span class="flower-icon" onclick="notify('The smartest girl I know! 🧠', '#fb8500')">🌻</span>
+            <span class="flower-icon" onclick="notify('Your laugh is my favorite! 😊', '#ffb703')">🌷</span>
+            <span class="flower-icon" onclick="notify('I love your kind heart! 💖', '#d00000')">🌺</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="card card-3" data-color="#9b5de5">
+          <h2>Key to My Heart</h2>
+          <p>In this life, many paths cross, but only one leads to where we belong. Find the matching piece to unlock the rest of your story.</p>
+          <div class="memory-grid" id="game-grid"></div>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="card card-final" data-color="#4cc9f0">
+          <h2>The Only One for Me</h2>
+          <p>Out of billions of people, you're the only one who truly gets me. You aren't just a part of my world—you are my whole world.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="card card-4" data-color="#f15bb5">
+          <h2>Forever & Always</h2>
+          <p>Happy 18th Birthday, my love! I'll always be your biggest supporter and your best friend. Let's make this the best year yet!</p>
+          <span class="big-heart">❤️</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const targetDate = new Date("February 25, 2026 00:00:00").getTime();
+      const loader = document.getElementById("loading-screen");
+
+      const timerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+        if (distance <= 0) {
+          clearInterval(timerInterval);
+          loader.style.opacity = "0";
+          setTimeout(() => loader.remove(), 800);
+          return;
+        }
+        document.getElementById("d-val").innerText = String(Math.floor(distance / 86400000)).padStart(2, "0");
+        document.getElementById("h-val").innerText = String(Math.floor((distance % 86400000) / 3600000)).padStart(2, "0");
+        document.getElementById("m-val").innerText = String(Math.floor((distance % 3600000) / 60000)).padStart(2, "0");
+        document.getElementById("s-val").innerText = String(Math.floor((distance % 60000) / 1000)).padStart(2, "0");
+      }, 1000);
+
+      let currentPos = 0,
+        gameUnlocked = false,
+        activeOscillators = [];
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      function stopAllSounds() {
+        activeOscillators.forEach((osc) => {
+          try {
+            osc.stop();
+            osc.disconnect();
+          } catch (e) {}
+        });
+        activeOscillators = [];
+      }
+
+      function playSound(freq, type, duration, startTime = 0, volume = 0.05) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime + startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + startTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + startTime);
+        osc.stop(audioCtx.currentTime + startTime + duration);
+        activeOscillators.push(osc);
+      }
+
+      function playFlipSound() {
+        playSound(600, "sine", 0.1);
+      }
+      function playMatchSound() {
+        playSound(880, "sine", 0.2);
+        playSound(1108, "sine", 0.3, 0.1);
+      }
+      function playFailSound() {
+        playSound(180, "triangle", 0.2, 0, 0.02);
+        playSound(130, "triangle", 0.2, 0.1, 0.02);
+      }
+      function playUnlockSound() {
+        [440, 554, 659, 880].forEach((f, i) => playSound(f, "sine", 0.4, i * 0.1));
+      }
+
+      function playBirthdayTune() {
+        stopAllSounds();
+        const notes = [
+          { f: 261.6, d: 0.4 },
+          { f: 261.6, d: 0.2 },
+          { f: 293.7, d: 0.6 },
+          { f: 261.6, d: 0.6 },
+          { f: 349.2, d: 0.6 },
+          { f: 329.6, d: 1.0 },
+          { f: 261.6, d: 0.4 },
+          { f: 261.6, d: 0.2 },
+          { f: 293.7, d: 0.6 },
+          { f: 261.6, d: 0.6 },
+          { f: 392.0, d: 0.6 },
+          { f: 349.2, d: 1.0 },
+        ];
+        let time = 0;
+        notes.forEach((n) => {
+          playSound(n.f, "sine", n.d, time);
+          time += n.d + 0.05;
+        });
+      }
+
+      function createStars() {
+        const container = document.getElementById("star-container");
+        for (let i = 0; i < 120; i++) {
+          const star = document.createElement("div");
+          star.className = "star" + (Math.random() > 0.6 ? " twinkle" : "");
+          star.style.width = star.style.height = Math.random() * 3 + 1 + "px";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          star.style.setProperty("--duration", Math.random() * 3 + 1.5 + "s");
+          container.appendChild(star);
+        }
+      }
+
+      function spawnShootingStar() {
+        const s = document.createElement("div");
+        s.className = "shooting-star";
+        const angle = -45;
+        s.style.left = Math.random() * 80 + 10 + "%";
+        s.style.top = Math.random() * 40 + "%";
+        s.style.width = Math.random() * 100 + 150 + "px";
+        s.animate(
+          [
+            { transform: `rotate(${angle}deg) translateX(0) scale(0)`, opacity: 1 },
+            { transform: `rotate(${angle}deg) translateX(-800px) scale(1)`, opacity: 0 },
+          ],
+          { duration: 2500, easing: "ease-in-out" },
+        );
+        document.getElementById("star-container").appendChild(s);
+        setTimeout(() => s.remove(), 2500);
+      }
+
+      function move(dir) {
+        jumpTo(currentPos + dir);
+      }
+      function jumpTo(pos) {
+        if (pos < 0 || pos > 4 || (pos > 2 && !gameUnlocked)) return;
+
+        if (currentPos === 4 && pos !== 4) {
+          stopAllSounds();
+        }
+
+        currentPos = pos;
+        document.getElementById("world").style.transform = `translateX(-${pos * 100}vw)`;
+        updateUI();
+        if (currentPos === 4) {
+          spawnConfetti();
+          playBirthdayTune();
+        }
+      }
+
+      function updateUI() {
+        const cards = document.querySelectorAll(".card");
+        const currentColor = cards[currentPos].getAttribute("data-color");
+        document.documentElement.style.setProperty("--active-color", currentColor);
+
+        document.getElementById("prev-btn").style.display = currentPos > 0 ? "flex" : "none";
+        document.getElementById("next-btn").style.display = currentPos < 4 && (currentPos !== 2 || gameUnlocked) ? "flex" : "none";
+        document.querySelectorAll(".dot").forEach((dot, i) => {
+          dot.classList.toggle("active", i === currentPos);
+          if (i <= 2 || gameUnlocked) dot.classList.add("visible");
+        });
+      }
+
+      function notify(msg, color) {
+        const n = document.createElement("div");
+        n.className = "notif";
+        n.innerText = msg;
+        n.style.color = color;
+        document.getElementById("notif-container").appendChild(n);
+        setTimeout(() => n.remove(), 3000);
+      }
+
+      function spawnConfetti() {
+        for (let i = 0; i < 250; i++) {
+          const c = document.createElement("div");
+          c.className = "confetti";
+          c.style.left = Math.random() * 100 + "vw";
+          c.style.bottom = "-10px";
+          c.style.background = ["#ff75a0", "#fee440", "#00f5d4", "#9b5de5", "#4cc9f0", "#f15bb5"][Math.floor(Math.random() * 6)];
+          c.style.setProperty("--tx", Math.random() * 100 - 50 + "vw");
+          c.style.setProperty("--ty", -(Math.random() * 100 + 50) + "vh");
+          c.style.setProperty("--rot", Math.random() * 2000 + "deg");
+          c.style.setProperty("--d", Math.random() * 2 + 1.5 + "s");
+          document.body.appendChild(c);
+          setTimeout(() => c.remove(), 4000);
+        }
+      }
+
+      const emoteColors = {
+        "💖": "#ff75a0",
+        "💘": "#f15bb5",
+        "✨": "#fee440",
+        "🌹": "#d00000",
+        "💎": "#4cc9f0",
+        "🍭": "#ffb703",
+        "🎀": "#ff99ac",
+        "⭐": "#ffd700",
+      };
+
+      const emojis = Object.keys(emoteColors)
+        .concat(Object.keys(emoteColors))
+        .sort(() => Math.random() - 0.5);
+      let flipped = [];
+      emojis.forEach((icon) => {
+        const card = document.createElement("div");
+        card.className = "memory-card";
+        card.innerHTML = `<div class="front">${icon}</div><div class="back"></div>`;
+        card.onclick = () => {
+          if (flipped.length < 2 && !card.classList.contains("flipped") && !card.classList.contains("matched")) {
+            card.classList.add("flipped");
+            playFlipSound();
+            flipped.push({ card, icon });
+            if (flipped.length === 2) {
+              if (flipped[0].icon === flipped[1].icon) {
+                const matchColor = emoteColors[flipped[0].icon];
+                flipped.forEach((f) => {
+                  f.card.classList.add("matched");
+                  f.card.style.setProperty("--match-color", matchColor);
+                });
+                playMatchSound();
+                flipped = [];
+                if (document.querySelectorAll(".matched").length === 16) {
+                  gameUnlocked = true;
+                  playUnlockSound();
+                  updateUI();
+                  notify("Story Unlocked! ✨", "#00f5d4");
+                }
+              } else {
+                setTimeout(() => {
+                  playFailSound();
+                  flipped.forEach((f) => f.card.classList.remove("flipped"));
+                  flipped = [];
+                }, 800);
+              }
+            }
+          }
+        };
+        document.getElementById("game-grid").appendChild(card);
+      });
+
+      createStars();
+      setInterval(spawnShootingStar, 4000);
+      updateUI();
+    </script>
   </body>
 </html>
